@@ -1,31 +1,53 @@
 <?php
+require '../db.php';
 session_start();
-include 'includes/db.php'; // Include database connection
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 $user_id = $_SESSION['user_id'];
-$user = $conn->query("SELECT * FROM users WHERE id = $user_id")->fetch_assoc();
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = $_POST['email'];
-    $profile_picture = $_FILES['profile_picture']['name'];
-    move_uploaded_file($_FILES['profile_picture']['tmp_name'], "uploads/" . $profile_picture);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $first_name = $_POST['first_name'];
+    $last_name = $_POST['last_name'];
+    $age = $_POST['age'];
+    $address = $_POST['address'];
+    $contacts = $_POST['contacts'];
+    $sex = $_POST['sex'];
 
-    $conn->query("UPDATE users SET email = '$email', profile_picture = '$profile_picture' WHERE id = $user_id");
-    echo "Profile updated!";
+    $sql = "UPDATE users SET first_name='$first_name', last_name='$last_name', age='$age', address='$address', contacts='$contacts', sex='$sex' WHERE id='$user_id'";
+
+    if (mysqli_query($conn, $sql)) {
+        echo "Profile updated successfully!";
+    } else {
+        echo "Error: " . mysqli_error($conn);
+    }
+}
+
+$sql = "SELECT * FROM users WHERE id='$user_id'";
+$result = mysqli_query($conn, $sql);
+$user = mysqli_fetch_assoc($result);
+
+// Check if the profile is incomplete
+if (empty($user['first_name']) || empty($user['last_name']) || empty($user['age']) || empty($user['address']) || empty($user['contacts']) || empty($user['sex'])) {
+    echo "Please complete your profile before viewing.<br>";
+    echo "<a href='edit_profile.php'>Complete Profile</a>";
+    exit;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile - EM Quality Shoes</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <h1>Your Profile</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="email" name="email" value="<?php echo $user['email']; ?>" required>
-        <input type="file" name="profile_picture" accept="image/*">
-        <input type="submit" value="Update Profile">
-    </form>
-</body>
-</html>
+<form method="post">
+    First Name: <input type="text" name="first_name" value="<?php echo $user['first_name']; ?>"><br>
+    Last Name: <input type="text" name="last_name" value="<?php echo $user['last_name']; ?>"><br>
+    Age: <input type="number" name="age" value="<?php echo $user['age']; ?>"><br>
+    Address: <textarea name="address"><?php echo $user['address']; ?></textarea><br>
+    Contacts: <input type="text" name="contacts" value="<?php echo $user['contacts']; ?>"><br>
+    Sex: 
+    <select name="sex">
+        <option value="male" <?php if ($user['sex'] == 'male') echo 'selected'; ?>>Male</option>
+        <option value="female" <?php if ($user['sex'] == 'female') echo 'selected'; ?>>Female</option>
+        <option value="other" <?php if ($user['sex'] == 'other') echo 'selected'; ?>>Other</option>
+    </select><br>
+    <input type="submit" value="Update Profile">
+</form>

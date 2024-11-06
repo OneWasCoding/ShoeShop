@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Fetch products uploaded by the admin
-$query = "SELECT * FROM products WHERE uploaded_by = 'admin'";
+$query = "SELECT * FROM products ";
 $products = $conn->query($query);
 ?>
 <!DOCTYPE html>
@@ -25,7 +25,7 @@ $products = $conn->query($query);
         <nav>
             <a href="index.php">Home</a>
             <a href="cart.php">Cart</a>
-            <a href="profile.php">Profile</a>
+            <a href="view_profile.php">Profile</a>
         </nav>
     </header>
     <div class="product-list">
